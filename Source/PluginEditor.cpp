@@ -142,9 +142,9 @@ void GUI::paint (juce::Graphics& g) {
                
             case static_cast<int>(ButtonName::poly):
                                     
-                const float D = 0.3f;
+                const float D = 0.4f;
                 const float E = 0.4f;
-                const float F = 0.2f;
+                const float F = 0.0f;
                 
                 outputAmplitude = -sign * D * inputAmplitude * inputAmplitude + E * inputAmplitude + F;
                 outputAmplitude *= 0.5;

@@ -83,17 +83,18 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
                     break;
                    
                 case static_cast<int>(ButtonName::poly):
-                    const float D = 0.3f;
+                    const float D = 0.4f;
                     const float E = 0.4f;
-                    const float F = 0.2f;
+                    const float F = 0.0f;
                     
-                    if (channelData[channel][sample] == 0) {
-                        // do nothing
-                    } else {
-                        channelData[channel][sample] = D * channelData[channel][sample] * channelData[channel][sample] + E * channelData[channel][sample] + F;
-                        channelData[channel][sample] *= 0.5;
-                        channelData[channel][sample] = std::tanh(channelData[channel][sample]);
-                    }
+                    if (channelData[channel][sample] == 0) return;
+                    
+                    channelData[channel][sample] = sign * D * channelData[channel][sample] * channelData[channel][sample] + E * channelData[channel][sample] + F;
+                    float inputScaling = decibelsToGain(inputGainValue);
+                    inputScaling *= 0.5;
+                    if (inputScaling > 1.0f) channelData[channel][sample] /= inputScaling;
+                    channelData[channel][sample] = std::tanh(channelData[channel][sample]);
+                    channelData[channel][sample] *= 2.0f;
             }
             
             channelData[channel][sample] *= decibelsToGain(outputGainValue);
