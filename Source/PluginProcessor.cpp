@@ -51,6 +51,8 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
                 
             channelData[channel][sample] *= decibelsToGain(inputGainValue);
 
+            float sign = channelData[channel][sample] > 0 ? 1.0f : -1.0f;
+            
             switch (selection) {
                 case static_cast<int>(ButtonName::tanh):
                     channelData[channel][sample] = tanh(channelData[channel][sample]);
@@ -65,23 +67,33 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
                     break;
                     
                 case static_cast<int>(ButtonName::log):
-                    channelData[channel][sample] = 4 * std::log(1 + std::abs(channelData[channel][sample])) * channelData[channel][sample] > 0 ? 1 : -1;
+                    channelData[channel][sample] = std::log(1 + std::abs(channelData[channel][sample])) * sign;
                     break;
                     
                 case static_cast<int>(ButtonName::sqrt):
-                    channelData[channel][sample] = std::sqrt(std::abs(channelData[channel][sample])) * channelData[channel][sample] > 0 ? 1 : -1;
+                    channelData[channel][sample] = std::sqrt(std::abs(channelData[channel][sample])) * sign;
+                    channelData[channel][sample] *= 0.5;
+                    channelData[channel][sample] = std::tanh(channelData[channel][sample]);
                     break;
                     
                 case static_cast<int>(ButtonName::cube):
                     channelData[channel][sample] = std::cbrt(channelData[channel][sample]);
+                    channelData[channel][sample] *= 0.5;
+                    channelData[channel][sample] = std::tanh(channelData[channel][sample]);
                     break;
                    
                 case static_cast<int>(ButtonName::poly):
-                     const double D = 0.5;
-                     const double E = 1.0;
-                     const double F = 1.0;
+                    const float D = 0.3f;
+                    const float E = 0.4f;
+                    const float F = 0.2f;
                     
-                     channelData[channel][sample] = D * channelData[channel][sample] * channelData[channel][sample] + E * channelData[channel][sample] + F;
+                    if (channelData[channel][sample] == 0) {
+                        // do nothing
+                    } else {
+                        channelData[channel][sample] = D * channelData[channel][sample] * channelData[channel][sample] + E * channelData[channel][sample] + F;
+                        channelData[channel][sample] *= 0.5;
+                        channelData[channel][sample] = std::tanh(channelData[channel][sample]);
+                    }
             }
             
             channelData[channel][sample] *= decibelsToGain(outputGainValue);

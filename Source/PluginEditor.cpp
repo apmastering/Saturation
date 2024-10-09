@@ -56,7 +56,6 @@ void GUI::paint (juce::Graphics& g) {
     
     const int selection = audioProcessor.getFloatKnobValue(ParameterNames::selection);
 
-
     if (selection >= static_cast<int>(ButtonName::none)) return;
     
     if (selection < 0) return;
@@ -91,6 +90,86 @@ void GUI::paint (juce::Graphics& g) {
                      ioRadius * 2,
                      juce::Justification::centred,
                      1);
+
+    const int scopeWidth = scopeR - scopeL;
+    const int scopeHeight = scopeB - scopeT;
+    const int granularity = 100;
+    const float grainWidth = scopeWidth / static_cast<float>(granularity);
+
+    g.setColour(juce::Colours::black.withAlpha(0.7f));
+    
+    juce::Path path;
+    juce::Path path2;
+    
+    for (int i = 0; i < granularity; ++i) {
+        
+        float y = scopeB - scopeHeight * 0.5f;
+        float inputAmplitude = (i - granularity * 0.5f) / 20;
+        float outputAmplitude = 0;
+        float sign = inputAmplitude > 0 ? 1.0f : -1.0f;
+
+        switch (selection) {
+            case static_cast<int>(ButtonName::tanh):
+                outputAmplitude = tanh(inputAmplitude);
+                outputAmplitude *= -1.0f;
+                break;
+                
+            case static_cast<int>(ButtonName::sine):
+                outputAmplitude = sin(inputAmplitude);
+                outputAmplitude *= -1.0f;
+                break;
+                
+            case static_cast<int>(ButtonName::inverse):
+                outputAmplitude = inputAmplitude / pow(1 + pow(inputAmplitude, 8), 1.0 / 8);
+                outputAmplitude *= -1.0f;
+                break;
+                
+            case static_cast<int>(ButtonName::log):
+                outputAmplitude = std::log(1.0f + std::abs(inputAmplitude)) * -sign;
+                break;
+                
+            case static_cast<int>(ButtonName::sqrt):
+                outputAmplitude = std::sqrt(std::abs(inputAmplitude)) * sign;
+                outputAmplitude *= -0.5;
+                outputAmplitude = std::tanh(outputAmplitude);
+                break;
+                
+            case static_cast<int>(ButtonName::cube):
+                outputAmplitude = std::cbrt(inputAmplitude);
+                outputAmplitude *= -0.5;
+                outputAmplitude = std::tanh(outputAmplitude);
+                break;
+               
+            case static_cast<int>(ButtonName::poly):
+                                    
+                const float D = 0.3f;
+                const float E = 0.4f;
+                const float F = 0.2f;
+                
+                outputAmplitude = -sign * D * inputAmplitude * inputAmplitude + E * inputAmplitude + F;
+                outputAmplitude *= 0.5;
+                outputAmplitude = std::tanh(outputAmplitude);
+        }
+        
+        y += outputAmplitude / 2.5f * scopeHeight;
+        
+        if (y < scopeT) y = scopeT;
+        if (y > scopeB) y = scopeB;
+        
+        if (i == 0) {
+            
+            path.startNewSubPath(scopeL, y);
+            path2.startNewSubPath(scopeL, scopeT + (scopeB - scopeT) / 2);
+            
+            continue;
+        }
+ 
+        path.lineTo(scopeL + (i * grainWidth), y);
+        path2.lineTo(scopeL + (i * grainWidth), scopeT + (scopeB - scopeT) / 2);
+    }
+    
+    g.strokePath(path, juce::PathStrokeType(4.0f));
+    g.strokePath(path2, juce::PathStrokeType(2.0f));
 }
 
 
@@ -158,7 +237,7 @@ void GUI::mouseDrag (const juce::MouseEvent& event) {
         currentButtonSelection != ButtonName::output)
         return;
         
-    const float delta = (previousMouseY - event.position.y) * 0.04;
+    const float delta = (previousMouseY - event.position.y) * 0.1;
 
     if (currentButtonSelection == ButtonName::input) {
         

@@ -44,14 +44,17 @@ private:
     const int ioRow2 = 430;
     const int ioColumn = 101;
     const int ioRadius = 34;
-    
     const int selectionColumn = 260;
     const int selectionFirstY = 162;
     const int selectionLastY = 444;
     const int numberOfSelections = 7;
     const int selectionRadius = 20;
-
     const float spacingY = (selectionLastY - selectionFirstY) / (numberOfSelections - 1);
+    const int scopeL = 37;
+    const int scopeT = 132;
+    const int scopeR = 189;
+    const int scopeB = 274;
+    
     
     int previousMouseY;
     
