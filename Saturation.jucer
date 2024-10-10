@@ -7,18 +7,18 @@
               pluginManufacturerCode="APMG" pluginCode="SATU">
   <MAINGROUP id="Hvoxjg" name="Saturation">
     <GROUP id="{75A4BD03-6758-0836-43A9-891F6FB902AD}" name="Source">
+      <FILE id="QDDAPQ" name="sine.h" compile="0" resource="0" file="Source/sine.h"/>
       <FILE id="oJKTnJ" name="APCommon.cpp" compile="1" resource="0" file="Source/APCommon.cpp"/>
       <FILE id="fPIwz8" name="APCommon.h" compile="0" resource="0" file="Source/APCommon.h"/>
       <FILE id="SOTYYD" name="Configuration.cpp" compile="1" resource="0"
             file="Source/Configuration.cpp"/>
-      <FILE id="ugDYuY" name="KnobLooks.cpp" compile="1" resource="0" file="Source/KnobLooks.cpp"/>
-      <FILE id="ApiYs5" name="KnobLooks.h" compile="0" resource="0" file="Source/KnobLooks.h"/>
       <FILE id="wgnZxb" name="Knockout-Flyweight.otf" compile="0" resource="1"
             file="Source/media/Knockout-Flyweight.otf"/>
       <FILE id="u3HxHl" name="Parameters.cpp" compile="1" resource="0" file="Source/Parameters.cpp"/>
       <FILE id="gaH8NG" name="PluginEditor.cpp" compile="1" resource="0"
             file="Source/PluginEditor.cpp"/>
       <FILE id="K5AM2v" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="xpuMFu" name="tanh.h" compile="0" resource="0" file="Source/tanh.h"/>
       <FILE id="u7rKvT" name="saturation.png" compile="0" resource="1" file="Source/media/saturation.png"/>
       <FILE id="GsBT7v" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

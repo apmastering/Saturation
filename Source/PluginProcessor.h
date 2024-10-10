@@ -2,6 +2,9 @@
 
 #include <vector>
 
+#include "tanh.h"
+#include "sine.h"
+
 
 class APComp  : public juce::AudioProcessor {
     
@@ -31,13 +34,23 @@ public:
     void setStateInformation (const void* data, int sizeInBytes) override;
         
     float getFloatKnobValue(ParameterNames parameter) const;
+    
+    void doPoly    (float& sample);
+    void doCube    (float& sample);
+    void doSqrt    (float& sample);
+    void doLog     (float& sample);
+    void doInverse (float& sample);
+    void doSine    (float& sample);
+    void doTanh    (float& sample, int channel);
 
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
 private:
-            
+
     std::vector<juce::AudioParameterFloat*> parameterList;
+    
+    TanhDistortionAntialiased tanhDistortionAntialiased;
         
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (APComp)
 };

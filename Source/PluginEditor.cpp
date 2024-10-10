@@ -17,7 +17,8 @@ selectionSlider(),
 inGainAttachment (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "inGain", inGainSlider)),
 outGainAttachment (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "outGain", outGainSlider)),
 selectionAttachment (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "selection", selectionSlider)),
-currentButtonSelection(ButtonName::none) {
+currentButtonSelection(ButtonName::none),
+tanhDistortionAntialiased() {
           
     for (size_t i = 0; i < sliders.size(); ++i) {
         
@@ -101,57 +102,56 @@ void GUI::paint (juce::Graphics& g) {
     juce::Path path;
     juce::Path path2;
     
+    if (selection == static_cast<int>(ButtonName::tanh)) {
+        
+        float sample = (0 - granularity * 0.5f) / 20;
+        
+        tanhDistortionAntialiased.setDriveAmount(decibelsToGain(inputGainValue));
+        
+        tanhDistortionAntialiased.process(sample, 0);
+    }
+    
     for (int i = 0; i < granularity; ++i) {
         
         float y = scopeB - scopeHeight * 0.5f;
-        float inputAmplitude = (i - granularity * 0.5f) / 20;
-        float outputAmplitude = 0;
-        float sign = inputAmplitude > 0 ? 1.0f : -1.0f;
+        float sample = (i - granularity * 0.5f) / 20;
 
         switch (selection) {
             case static_cast<int>(ButtonName::tanh):
-                outputAmplitude = tanh(inputAmplitude);
-                outputAmplitude *= -1.0f;
+                
+                tanhDistortionAntialiased.setDriveAmount(decibelsToGain(inputGainValue));
+                
+                sample = tanhDistortionAntialiased.process(sample, 0);
+
+                sample *= decibelsToGain(outputGainValue);
+
                 break;
                 
             case static_cast<int>(ButtonName::sine):
-                outputAmplitude = sin(inputAmplitude);
-                outputAmplitude *= -1.0f;
+                audioProcessor.doSine(sample);
                 break;
                 
             case static_cast<int>(ButtonName::inverse):
-                outputAmplitude = inputAmplitude / pow(1 + pow(inputAmplitude, 8), 1.0 / 8);
-                outputAmplitude *= -1.0f;
+                audioProcessor.doInverse(sample);
                 break;
                 
             case static_cast<int>(ButtonName::log):
-                outputAmplitude = std::log(1.0f + std::abs(inputAmplitude)) * -sign;
+                audioProcessor.doLog(sample);
                 break;
                 
             case static_cast<int>(ButtonName::sqrt):
-                outputAmplitude = std::sqrt(std::abs(inputAmplitude)) * sign;
-                outputAmplitude *= -0.5;
-                outputAmplitude = std::tanh(outputAmplitude);
+                audioProcessor.doSqrt(sample);
                 break;
                 
             case static_cast<int>(ButtonName::cube):
-                outputAmplitude = std::cbrt(inputAmplitude);
-                outputAmplitude *= -0.5;
-                outputAmplitude = std::tanh(outputAmplitude);
+                audioProcessor.doCube(sample);
                 break;
                
             case static_cast<int>(ButtonName::poly):
-                                    
-                const float D = 0.4f;
-                const float E = 0.4f;
-                const float F = 0.0f;
-                
-                outputAmplitude = -sign * D * inputAmplitude * inputAmplitude + E * inputAmplitude + F;
-                outputAmplitude *= 0.5;
-                outputAmplitude = std::tanh(outputAmplitude);
+                audioProcessor.doPoly(sample);
         }
         
-        y += outputAmplitude / 2.5f * scopeHeight;
+        y += sample / 2.5f * scopeHeight;
         
         if (y < scopeT) y = scopeT;
         if (y > scopeB) y = scopeB;
