@@ -10,11 +10,12 @@
 enum class ButtonName {
     tanh,
     sine,
-    inverse,
+    hard,
     log,
     sqrt,
     cube,
-    poly,
+    fold,
+    squaredSine,
     input,
     output,
     none

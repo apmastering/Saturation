@@ -2,9 +2,6 @@
 
 #include <vector>
 
-#include "tanh.h"
-#include "sine.h"
-
 
 class APComp  : public juce::AudioProcessor {
     
@@ -35,22 +32,32 @@ public:
         
     float getFloatKnobValue(ParameterNames parameter) const;
     
-    void doPoly    (float& sample);
-    void doCube    (float& sample);
-    void doSqrt    (float& sample);
-    void doLog     (float& sample);
-    void doInverse (float& sample);
-    void doSine    (float& sample);
-    void doTanh    (float& sample, int channel);
+    void doSquaredSine  (float& sample);
+    void doFold         (float& sample);
+    void doCube         (float& sample);
+    void doSqrt         (float& sample);
+    void doLog          (float& sample);
+    void doHard         (float& sample);
+    void doSine         (float& sample);
+    void doTanhStandard (float& sample);
 
     juce::AudioProcessorValueTreeState apvts;
     juce::AudioProcessorValueTreeState::ParameterLayout createParameterLayout();
     
 private:
 
-    std::vector<juce::AudioParameterFloat*> parameterList;
+    float previousSample;
     
-    TanhDistortionAntialiased tanhDistortionAntialiased;
+    void startOversampler(double sampleRate, int samplesPerBlock);
+
+    std::atomic<bool> oversamplerReady;
+    
+    float inputGain;
+    float outputGain;
+                
+    std::unique_ptr<juce::dsp::Oversampling<float>> oversampler;
+    
+    std::vector<juce::AudioParameterFloat*> parameterList;
         
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (APComp)
 };

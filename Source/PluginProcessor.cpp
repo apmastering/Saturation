@@ -1,7 +1,14 @@
 #include <cmath>
+#include <algorithm>
+#include <complex>
+#include <array>
 
 #include "APCommon.h"
 #include "PluginProcessor.h"
+
+#ifndef M_PI
+#define M_PI 3.14159265358979323846
+#endif
 
 
 APComp::APComp()
@@ -9,8 +16,9 @@ APComp::APComp()
                  .withInput("Input", juce::AudioChannelSet::quadraphonic(), true)
                  .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
 apvts(*this, nullptr, "PARAMETERS", createParameterLayout()),
-parameterList(static_cast<int>(ParameterNames::END) + 1),
-tanhDistortionAntialiased() {
+inputGain(0),
+outputGain(0),
+parameterList(static_cast<int>(ParameterNames::END) + 1) {
         
     for (int i = 0; i < static_cast<int>(ParameterNames::END); ++i) {
         
@@ -20,6 +28,10 @@ tanhDistortionAntialiased() {
 
 
 void APComp::prepareToPlay(double sampleRate, int samplesPerBlock) {
+    
+    oversamplerReady.store(false);
+    
+    startOversampler(sampleRate, samplesPerBlock);
 }
 
 
@@ -35,30 +47,44 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
 
     int totalNumInputChannels = getTotalNumInputChannels();
     int totalNumOutputChannels = getTotalNumOutputChannels();
+
+    const float gainSmoothingCoefficient = 0.0001f;
+    
+    const float inputGainValueKnob  = getFloatKnobValue(ParameterNames::inGain);
+    const float outputGainValueKnob = getFloatKnobValue(ParameterNames::outGain);
     
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) buffer.clear(i, 0, buffer.getNumSamples());
-    
-    const int   selection       = getFloatKnobValue(ParameterNames::selection);
+
+    if (!oversamplerReady.load()) return;
+
+    juce::dsp::AudioBlock<float> originalBlock(buffer);
+
+    juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp (originalBlock);
+
+    const int selection = getFloatKnobValue(ParameterNames::selection);
   
     float* channelData[2];
     
-    for (int i = 0; i < totalNumInputChannels && i < 2; i++) channelData[i] = buffer.getWritePointer(i);
+    for (int i = 0; i < totalNumInputChannels && i < 2; i++) channelData[i] = oversampledBlock.getChannelPointer(i);
     
-    for (int sample = 0; sample < buffer.getNumSamples(); ++sample) {
+    for (int sample = 0; sample < oversampledBlock.getNumSamples(); ++sample) {
         
         for (int channel = 0; channel < 2 && channel < totalNumInputChannels; channel++) {
+            
+            inputGain  = inputGainValueKnob  * gainSmoothingCoefficient + (1 - gainSmoothingCoefficient) * inputGain;
+            outputGain = outputGainValueKnob * gainSmoothingCoefficient + (1 - gainSmoothingCoefficient) * outputGain;
                             
             switch (selection) {
                 case static_cast<int>(ButtonName::tanh):
-                    doTanh(channelData[channel][sample], channel);
+                    doTanhStandard(channelData[channel][sample]);
                     break;
                     
                 case static_cast<int>(ButtonName::sine):
                     doSine(channelData[channel][sample]);
                     break;
                     
-                case static_cast<int>(ButtonName::inverse):
-                    doInverse(channelData[channel][sample]);
+                case static_cast<int>(ButtonName::hard):
+                    doHard(channelData[channel][sample]);
                     break;
                     
                 case static_cast<int>(ButtonName::log):
@@ -73,124 +99,132 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
                     doCube(channelData[channel][sample]);
                     break;
                    
-                case static_cast<int>(ButtonName::poly):
-                    doPoly(channelData[channel][sample]);
+                case static_cast<int>(ButtonName::fold):
+                    doFold(channelData[channel][sample]);
+                    break;
+                    
+                case static_cast<int>(ButtonName::squaredSine):
+                    doSquaredSine(channelData[channel][sample]);
             }
         }
     }
-}
-
-
-void APComp::doTanh (float& sample, int channel) {
     
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
-    
-    tanhDistortionAntialiased.setDriveAmount(decibelsToGain(inputGainValue));
-    
-    sample = tanhDistortionAntialiased.process(sample, channel);
-
-    sample *= decibelsToGain(outputGainValue);
+    oversampler->processSamplesDown (originalBlock);
 }
 
 
 void APComp::doSine (float& sample) {
     
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
-
-    sample *= decibelsToGain(inputGainValue);
+    sample *= decibelsToGain(inputGain);
 
     sample = std::sin(sample);
         
-    sample *= decibelsToGain(outputGainValue);
+    sample *= decibelsToGain(outputGain);
 }
 
 
-void APComp::doInverse (float& sample) {
+void APComp::doTanhStandard (float& sample) {
     
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
+    sample *= decibelsToGain(inputGain);
 
-    sample *= decibelsToGain(inputGainValue);
+    sample = std::tanh(sample);
+        
+    sample *= decibelsToGain(outputGain);
+}
+
+
+void APComp::doHard (float& sample) {
+    
+    sample *= decibelsToGain(inputGain);
 
     sample = sample / pow(1 + pow(sample, 8), 1.0 / 8);
     
-    sample *= decibelsToGain(outputGainValue);
+    sample *= decibelsToGain(outputGain);
 }
 
 
 void APComp::doLog (float& sample) {
     
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
-
+    sample *= decibelsToGain(inputGain);
+    
     float sign = sample > 0 ? 1.0f : -1.0f;
-
-    sample *= decibelsToGain(inputGainValue);
         
     sample = std::log(1 + std::abs(sample)) * sign;
     
-    sample *= 0.4;
+    sample *= 0.6;
     
-    sample = std::tanh(sample);
-        
-    sample *= decibelsToGain(outputGainValue);
+    sample = sample / pow(1 + pow(sample, 8), 1.0 / 8);
+
+    sample *= decibelsToGain(outputGain);
 }
 
 
 void APComp::doSqrt (float& sample) {
-    
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
+
+    sample *= decibelsToGain(inputGain);
 
     float sign = sample > 0 ? 1.0f : -1.0f;
 
-    sample *= decibelsToGain(inputGainValue);
-
     sample = std::sqrt(std::abs(sample)) * sign;
-    sample *= 0.4;
-    sample = std::tanh(sample);
-    
-    sample *= decibelsToGain(outputGainValue);
+    sample *= 0.6;
+    sample = sample / pow(1 + pow(sample, 8), 1.0 / 8);
+
+    sample *= decibelsToGain(outputGain);
 }
 
 
 void APComp::doCube (float& sample) {
-    
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
 
-    sample *= decibelsToGain(inputGainValue);
+    sample *= decibelsToGain(inputGain);
 
     sample = std::cbrt(sample);
     sample *= 0.5;
     sample = std::sin(sample);
     
-    sample *= decibelsToGain(outputGainValue);
+    sample *= decibelsToGain(outputGain);
 }
 
 
-void APComp::doPoly (float& sample) {
-    
-    const float inputGainValue  = getFloatKnobValue(ParameterNames::inGain);
-    const float outputGainValue = getFloatKnobValue(ParameterNames::outGain);
+void APComp::doFold (float& sample) {
 
-    const float D = 0.4f;
-    const float E = 0.4f;
-    const float F = 0.0f;
+    float threshold = 0.9f;
+    
+    sample *= decibelsToGain(inputGain);
+
+    sample = std::fmod(sample, 2.0f * threshold);
+    
+    if (sample > threshold) {
+        sample = 2.0f * threshold - sample;
+    } else if (sample < -threshold) {
+        sample = -2.0f * threshold - sample;
+    }
+
+    sample *= decibelsToGain(outputGain);
+}
+
+
+void APComp::doSquaredSine (float& sample) {
+        
+    sample *= decibelsToGain(inputGain);
 
     float sign = sample > 0 ? 1.0f : -1.0f;
 
-    if (sample == 0) return;
+    sample = std::sin(sample * sample * sign);
+            
+    sample *= decibelsToGain(outputGain);
+}
+
+
+void APComp::startOversampler(double sampleRate, int samplesPerBlock) {
     
-    sample *= decibelsToGain(inputGainValue);
+    oversampler.reset();
     
-    sample = sign * D * sample * sample + E * sample + F;
-    float inputScaling = decibelsToGain(inputGainValue);
-    inputScaling *= 0.2;
-    if (inputScaling > 1.0f) sample /= inputScaling;
-    sample = std::sin(sample);
+    oversampler = std::make_unique<juce::dsp::Oversampling<float>>(2, 3, juce::dsp::Oversampling<float>::filterHalfBandFIREquiripple);
     
-    sample *= decibelsToGain(outputGainValue);
+    oversampler->initProcessing(static_cast<size_t>(samplesPerBlock));
+    oversampler->reset();
+    
+    setLatencySamples(oversampler->getLatencyInSamples());
+         
+    oversamplerReady.store(true);
 }

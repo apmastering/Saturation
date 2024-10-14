@@ -38,8 +38,8 @@ juce::AudioProcessorValueTreeState::ParameterLayout APComp::createParameterLayou
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 
     params.push_back(newFloatParam(ParameterNames::inGain,     0.0f,    120.0f,     0.0f  ));
-    params.push_back(newFloatParam(ParameterNames::outGain,    -24.0f,   0.0f,     -24.0f ));
-    params.push_back(newIntParam(ParameterNames::selection,     0,       6,         0     ));
+    params.push_back(newFloatParam(ParameterNames::outGain,    -24.0f,   0.0f,     0.0f ));
+    params.push_back(newIntParam(ParameterNames::selection,     0,       7,         0     ));
 
     return { params.begin(), params.end() };
 }
