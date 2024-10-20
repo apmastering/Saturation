@@ -13,7 +13,7 @@
 
 APComp::APComp()
 : AudioProcessor(BusesProperties()
-                 .withInput("Input", juce::AudioChannelSet::quadraphonic(), true)
+                 .withInput("Input", juce::AudioChannelSet::stereo(), true)
                  .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
 apvts(*this, nullptr, "PARAMETERS", createParameterLayout()),
 inputGain(0),
@@ -58,9 +58,16 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
     if (!oversamplerReady.load()) return;
 
     juce::dsp::AudioBlock<float> originalBlock(buffer);
-
-    juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp (originalBlock);
-
+    juce::dsp::AudioBlock<float> mainBlock;
+    
+    if (totalNumInputChannels < 1) return;
+    
+    if (totalNumInputChannels == 1) mainBlock = originalBlock.getSingleChannelBlock(0);
+    
+    if (totalNumInputChannels > 1) mainBlock = originalBlock.getSubsetChannelBlock(0, 2);
+    
+    juce::dsp::AudioBlock<float> oversampledBlock = oversampler->processSamplesUp (mainBlock);
+    
     const int selection = getFloatKnobValue(ParameterNames::selection);
   
     float* channelData[2];
@@ -109,7 +116,7 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
         }
     }
     
-    oversampler->processSamplesDown (originalBlock);
+    oversampler->processSamplesDown (mainBlock);
 }
 
 
