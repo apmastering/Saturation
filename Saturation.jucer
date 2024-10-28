@@ -25,7 +25,6 @@
             file="Source/PluginEditor.cpp"/>
       <FILE id="NyLPYl" name="squaredSine.png" compile="0" resource="1" file="Source/media/squaredSine.png"/>
       <FILE id="K5AM2v" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
-      <FILE id="xpuMFu" name="tanh.h" compile="0" resource="0" file="Source/tanh.h"/>
       <FILE id="u7rKvT" name="saturation.png" compile="0" resource="1" file="Source/media/saturation.png"/>
       <FILE id="GsBT7v" name="PluginProcessor.cpp" compile="1" resource="0"
             file="Source/PluginProcessor.cpp"/>

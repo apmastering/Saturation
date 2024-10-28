@@ -1,7 +1,6 @@
 #pragma once
 
 #include "PluginProcessor.h"
-#include "tanh.h"
 
 
 class GUI  : public juce::AudioProcessorEditor, private juce::Timer {
@@ -73,8 +72,6 @@ private:
     int previousMouseY;
     
     ButtonName currentButtonSelection;
-    
-    TanhDistortionAntialiased tanhDistortionAntialiased;
-    
+        
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (GUI)
 };

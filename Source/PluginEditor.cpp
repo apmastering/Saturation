@@ -25,8 +25,7 @@ selectionSlider(),
 inGainAttachment (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "inGain", inGainSlider)),
 outGainAttachment (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "outGain", outGainSlider)),
 selectionAttachment (std::make_unique<juce::AudioProcessorValueTreeState::SliderAttachment>(audioProcessor.apvts, "selection", selectionSlider)),
-currentButtonSelection(ButtonName::none),
-tanhDistortionAntialiased() {
+currentButtonSelection(ButtonName::none) {
           
     for (size_t i = 0; i < sliders.size(); ++i) {
         
@@ -109,15 +108,6 @@ void GUI::paint (juce::Graphics& g) {
     
     juce::Path path;
     juce::Path path2;
-    
-    if (selection == static_cast<int>(ButtonName::tanh)) {
-        
-        float sample = (0 - granularity * 0.5f) / 20;
-        
-        tanhDistortionAntialiased.setDriveAmount(decibelsToGain(inputGainValue));
-        
-        tanhDistortionAntialiased.process(sample, 0);
-    }
     
     for (int i = 0; i < granularity; ++i) {
         
