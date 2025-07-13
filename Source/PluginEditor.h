@@ -24,6 +24,7 @@ private:
                 
     juce::Image backgroundImage;
     
+    /*
     juce::Image tanhImage;
     juce::Image hardImage;
     juce::Image logImage;
@@ -32,7 +33,8 @@ private:
     juce::Image sineImage;
     juce::Image sqrtImage;
     juce::Image cubeImage;
-
+*/
+    
     juce::Font customTypeface;
         
     juce::Slider inGainSlider;
@@ -70,6 +72,8 @@ private:
     const int mathB = 70;
     
     int previousMouseY;
+    
+    float snapshotGain;
     
     ButtonName currentButtonSelection;
         

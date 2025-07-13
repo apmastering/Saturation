@@ -10,7 +10,7 @@ GUI::GUI (APComp& p)
 : AudioProcessorEditor (&p),
 audioProcessor (p),
 backgroundImage (juce::ImageFileFormat::loadFrom(BinaryData::saturation_png, BinaryData::saturation_pngSize)),
-tanhImage       (juce::ImageFileFormat::loadFrom(BinaryData::tanh_png, BinaryData::tanh_pngSize)),
+/*tanhImage       (juce::ImageFileFormat::loadFrom(BinaryData::tanh_png, BinaryData::tanh_pngSize)),
 hardImage       (juce::ImageFileFormat::loadFrom(BinaryData::hard_png, BinaryData::hard_pngSize)),
 logImage        (juce::ImageFileFormat::loadFrom(BinaryData::log_png, BinaryData::log_pngSize)),
 foldImage       (juce::ImageFileFormat::loadFrom(BinaryData::fold_png, BinaryData::fold_pngSize)),
@@ -18,6 +18,7 @@ squaredSineImage(juce::ImageFileFormat::loadFrom(BinaryData::squaredSine_png, Bi
 sineImage       (juce::ImageFileFormat::loadFrom(BinaryData::sine_png, BinaryData::sine_pngSize)),
 sqrtImage       (juce::ImageFileFormat::loadFrom(BinaryData::sqrt_png, BinaryData::sqrt_pngSize)),
 cubeImage       (juce::ImageFileFormat::loadFrom(BinaryData::cube_png, BinaryData::cube_pngSize)),
+ */
 customTypeface (APFont::getFont()),
 inGainSlider(),
 outGainSlider(),
@@ -168,7 +169,7 @@ void GUI::paint (juce::Graphics& g) {
     g.strokePath(path, juce::PathStrokeType(4.0f));
     g.strokePath(path2, juce::PathStrokeType(2.0f));
     
-    
+    /*
     switch (selection) {
         case static_cast<int>(ButtonName::tanh):
             g.drawImageWithin(tanhImage,
@@ -241,6 +242,7 @@ void GUI::paint (juce::Graphics& g) {
                               mathB - mathT,
                               juce::RectanglePlacement::xMid);
     }
+     */
 }
 
 
@@ -295,8 +297,16 @@ void GUI::mouseDown (const juce::MouseEvent& event) {
     currentButtonSelection = determineButton(event);
     
     if (currentButtonSelection == ButtonName::none) return;
-    if (currentButtonSelection == ButtonName::input) return;
-    if (currentButtonSelection == ButtonName::output) return;
+    if (currentButtonSelection == ButtonName::input) {
+        
+        snapshotGain = audioProcessor.getFloatKnobValue(ParameterNames::inGain);
+        return;
+    }
+    if (currentButtonSelection == ButtonName::output) {
+        
+        snapshotGain = audioProcessor.getFloatKnobValue(ParameterNames::outGain);
+        return;
+    }
 
     selectionSlider.setValue(static_cast<int>(currentButtonSelection));
 }
@@ -308,23 +318,17 @@ void GUI::mouseDrag (const juce::MouseEvent& event) {
         currentButtonSelection != ButtonName::output)
         return;
         
-    const float delta = (previousMouseY - event.position.y) * 0.1;
+    const float delta = (previousMouseY - event.position.y) * 0.1f;
 
     if (currentButtonSelection == ButtonName::input) {
         
-        const float inputGainValue  = audioProcessor.getFloatKnobValue(ParameterNames::inGain);
-
-        inGainSlider.setValue(inputGainValue + delta);
+        inGainSlider.setValue(snapshotGain + delta);
     }
     
     if (currentButtonSelection == ButtonName::output) {
         
-        const float outputGainValue = audioProcessor.getFloatKnobValue(ParameterNames::outGain);
-
-        outGainSlider.setValue(outputGainValue + delta);
+        outGainSlider.setValue(snapshotGain + delta);
     }
-    
-    previousMouseY = event.position.y;
 }
 
 
