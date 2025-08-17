@@ -33,7 +33,7 @@ std::unique_ptr<juce::RangedAudioParameter> newIntParam(ParameterNames paramName
 }
 
 
-juce::AudioProcessorValueTreeState::ParameterLayout APComp::createParameterLayout() {
+juce::AudioProcessorValueTreeState::ParameterLayout APSaturation::createParameterLayout() {
     
     std::vector<std::unique_ptr<juce::RangedAudioParameter>> params;
 

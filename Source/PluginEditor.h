@@ -7,7 +7,7 @@ class GUI  : public juce::AudioProcessorEditor, private juce::Timer {
 
 public:
     
-    GUI (APComp&);
+    GUI (APSaturation&);
     ~GUI() override;
     
     void paint (juce::Graphics&) override;
@@ -20,7 +20,7 @@ public:
     
 private:
     
-    APComp& audioProcessor;
+    APSaturation& audioProcessor;
                 
     juce::Image backgroundImage;
     

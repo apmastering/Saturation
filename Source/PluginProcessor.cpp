@@ -11,7 +11,7 @@
 #endif
 
 
-APComp::APComp()
+APSaturation::APSaturation()
 : AudioProcessor(BusesProperties()
                  .withInput("Input", juce::AudioChannelSet::stereo(), true)
                  .withOutput("Output", juce::AudioChannelSet::stereo(), true)),
@@ -27,7 +27,7 @@ parameterList(static_cast<int>(ParameterNames::END) + 1) {
 }
 
 
-void APComp::prepareToPlay(double sampleRate, int samplesPerBlock) {
+void APSaturation::prepareToPlay(double sampleRate, int samplesPerBlock) {
     
     oversamplerReady.store(false);
     
@@ -35,13 +35,13 @@ void APComp::prepareToPlay(double sampleRate, int samplesPerBlock) {
 }
 
 
-float APComp::getFloatKnobValue(ParameterNames parameter) const {
+float APSaturation::getFloatKnobValue(ParameterNames parameter) const {
     
     return parameterList[static_cast<int>(parameter)]->get();
 }
 
 
-void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
+void APSaturation::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& midiMessages) {
     
     juce::ScopedNoDenormals noDenormals;
 
@@ -120,7 +120,7 @@ void APComp::processBlock (juce::AudioBuffer<float>& buffer, juce::MidiBuffer& m
 }
 
 
-void APComp::doSine (float& sample) {
+void APSaturation::doSine (float& sample) {
     
     sample *= decibelsToGain(inputGain);
 
@@ -130,7 +130,7 @@ void APComp::doSine (float& sample) {
 }
 
 
-void APComp::doTanhStandard (float& sample) {
+void APSaturation::doTanhStandard (float& sample) {
     
     sample *= decibelsToGain(inputGain);
 
@@ -140,7 +140,7 @@ void APComp::doTanhStandard (float& sample) {
 }
 
 
-void APComp::doHard (float& sample) {
+void APSaturation::doHard (float& sample) {
     
     sample *= decibelsToGain(inputGain);
 
@@ -150,7 +150,7 @@ void APComp::doHard (float& sample) {
 }
 
 
-void APComp::doLog (float& sample) {
+void APSaturation::doLog (float& sample) {
     
     sample *= decibelsToGain(inputGain);
     
@@ -166,7 +166,7 @@ void APComp::doLog (float& sample) {
 }
 
 
-void APComp::doSqrt (float& sample) {
+void APSaturation::doSqrt (float& sample) {
 
     sample *= decibelsToGain(inputGain);
 
@@ -180,7 +180,7 @@ void APComp::doSqrt (float& sample) {
 }
 
 
-void APComp::doCube (float& sample) {
+void APSaturation::doCube (float& sample) {
 
     sample *= decibelsToGain(inputGain);
 
@@ -192,7 +192,7 @@ void APComp::doCube (float& sample) {
 }
 
 
-void APComp::doFold (float& sample) {
+void APSaturation::doFold (float& sample) {
 
     float threshold = 0.9f;
     
@@ -210,7 +210,7 @@ void APComp::doFold (float& sample) {
 }
 
 
-void APComp::doSquaredSine (float& sample) {
+void APSaturation::doSquaredSine (float& sample) {
         
     sample *= decibelsToGain(inputGain);
 
@@ -222,7 +222,7 @@ void APComp::doSquaredSine (float& sample) {
 }
 
 
-void APComp::startOversampler(double sampleRate, int samplesPerBlock) {
+void APSaturation::startOversampler(double sampleRate, int samplesPerBlock) {
     
     oversampler.reset();
     

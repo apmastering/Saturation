@@ -3,11 +3,11 @@
 #include <vector>
 
 
-class APComp  : public juce::AudioProcessor {
+class APSaturation  : public juce::AudioProcessor {
     
 public:
     
-    APComp();
+    APSaturation();
         
     void prepareToPlay (double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -59,5 +59,5 @@ private:
     
     std::vector<juce::AudioParameterFloat*> parameterList;
         
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (APComp)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (APSaturation)
 };

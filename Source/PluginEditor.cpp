@@ -6,7 +6,7 @@
 #include "PluginEditor.h"
 
 
-GUI::GUI (APComp& p)
+GUI::GUI (APSaturation& p)
 : AudioProcessorEditor (&p),
 audioProcessor (p),
 backgroundImage (juce::ImageFileFormat::loadFrom(BinaryData::saturation_png, BinaryData::saturation_pngSize)),
