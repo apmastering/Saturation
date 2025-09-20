@@ -11,32 +11,20 @@ public:
     ~GUI() override;
     
     void paint (juce::Graphics&) override;
-    void resized() override;
+    void resized() override {};
     void timerCallback() override;
+    ButtonName determineButton(const juce::MouseEvent &event);
     void mouseDown (const juce::MouseEvent& event) override;
     void mouseDrag (const juce::MouseEvent& event) override;
     void mouseUp (const juce::MouseEvent& event) override;
-    ButtonName determineButton(const juce::MouseEvent &event);
+	void mouseWheelMove(const juce::MouseEvent& event,
+						const juce::MouseWheelDetails& wheel) override;
     
 private:
     
     APSaturation& audioProcessor;
-                
     juce::Image backgroundImage;
-    
-    /*
-    juce::Image tanhImage;
-    juce::Image hardImage;
-    juce::Image logImage;
-    juce::Image foldImage;
-    juce::Image squaredSineImage;
-    juce::Image sineImage;
-    juce::Image sqrtImage;
-    juce::Image cubeImage;
-*/
-    
     juce::Font customTypeface;
-        
     juce::Slider inGainSlider;
     juce::Slider outGainSlider;
     juce::Slider selectionSlider;

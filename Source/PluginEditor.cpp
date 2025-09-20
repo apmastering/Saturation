@@ -10,15 +10,6 @@ GUI::GUI (APSaturation& p)
 : AudioProcessorEditor (&p),
 audioProcessor (p),
 backgroundImage (juce::ImageFileFormat::loadFrom(BinaryData::saturation_png, BinaryData::saturation_pngSize)),
-/*tanhImage       (juce::ImageFileFormat::loadFrom(BinaryData::tanh_png, BinaryData::tanh_pngSize)),
-hardImage       (juce::ImageFileFormat::loadFrom(BinaryData::hard_png, BinaryData::hard_pngSize)),
-logImage        (juce::ImageFileFormat::loadFrom(BinaryData::log_png, BinaryData::log_pngSize)),
-foldImage       (juce::ImageFileFormat::loadFrom(BinaryData::fold_png, BinaryData::fold_pngSize)),
-squaredSineImage(juce::ImageFileFormat::loadFrom(BinaryData::squaredSine_png, BinaryData::squaredSine_pngSize)),
-sineImage       (juce::ImageFileFormat::loadFrom(BinaryData::sine_png, BinaryData::sine_pngSize)),
-sqrtImage       (juce::ImageFileFormat::loadFrom(BinaryData::sqrt_png, BinaryData::sqrt_pngSize)),
-cubeImage       (juce::ImageFileFormat::loadFrom(BinaryData::cube_png, BinaryData::cube_pngSize)),
- */
 customTypeface (APFont::getFont()),
 inGainSlider(),
 outGainSlider(),
@@ -168,85 +159,7 @@ void GUI::paint (juce::Graphics& g) {
     
     g.strokePath(path, juce::PathStrokeType(4.0f));
     g.strokePath(path2, juce::PathStrokeType(2.0f));
-    
-    /*
-    switch (selection) {
-        case static_cast<int>(ButtonName::tanh):
-            g.drawImageWithin(tanhImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-            
-        case static_cast<int>(ButtonName::sine):
-            g.drawImageWithin(sineImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-            
-        case static_cast<int>(ButtonName::hard):
-            g.drawImageWithin(hardImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-            
-        case static_cast<int>(ButtonName::log):
-            g.drawImageWithin(logImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-            
-        case static_cast<int>(ButtonName::sqrt):
-            g.drawImageWithin(sqrtImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-            
-        case static_cast<int>(ButtonName::cube):
-            g.drawImageWithin(cubeImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-           
-        case static_cast<int>(ButtonName::fold):
-            g.drawImageWithin(foldImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-            break;
-           
-        case static_cast<int>(ButtonName::squaredSine):
-            g.drawImageWithin(squaredSineImage,
-                              mathL,
-                              mathT,
-                              mathR - mathL,
-                              mathB - mathT,
-                              juce::RectanglePlacement::xMid);
-    }
-     */
 }
-
-
-void GUI::resized() {}
 
 
 void GUI::timerCallback() {
@@ -329,6 +242,21 @@ void GUI::mouseDrag (const juce::MouseEvent& event) {
         
         outGainSlider.setValue(snapshotGain + delta);
     }
+}
+
+
+void GUI::mouseWheelMove(const juce::MouseEvent& event, const juce::MouseWheelDetails& wheel) {
+
+    float mouseX = event.position.x;
+    float mouseY = event.position.y;
+    
+    if (mouseX < ioColumn - ioRadius ||
+        mouseX > ioColumn + ioRadius) return;
+    
+    float delta = wheel.deltaY * -4.0f;
+    
+    if (mouseY > ioRow1 - ioRadius && mouseY < ioRow1 + ioRadius)  inGainSlider.setValue(audioProcessor.getFloatKnobValue(ParameterNames::inGain)  + delta);
+    if (mouseY > ioRow2 - ioRadius && mouseY < ioRow2 + ioRadius) outGainSlider.setValue(audioProcessor.getFloatKnobValue(ParameterNames::outGain) + delta);
 }
 
 
